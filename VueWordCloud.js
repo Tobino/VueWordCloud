@@ -353,6 +353,33 @@
 			}, {once: true});
 		};
 
+		let weightToFontSize = function (weight, maxWeight) {
+			const input = weight;
+			const [inputMin, inputMax] = inputRange = [1, maxWeight]; // Min & max possible word weight
+			// TODO: use props to customize outputRange
+			const [outputMin, outputMax] = outputRange = [20, 100]; // Min & max font sizes
+
+			if (outputMin === outputMax) {
+				return outputMin;
+			}
+
+			if (inputMin === inputMax) {
+				if (input <= inputMin) {
+					return outputMin;
+				}
+				return outputMax;
+			}
+
+			let result = input;
+			// Input Range
+			result = (result - inputMin) / (inputMax - inputMin);
+
+			// Output Range
+			result = result * (outputMax - outputMin) + outputMin;
+
+			return result;
+		};
+
 		let boundWords = async function(context, containerWidth, containerHeight, words) {
 			let boundedWords = [];
 			let boundWordWorker = Worker_fromFunction(boundWord);
@@ -360,12 +387,13 @@
 				let gridResolution = Math.pow(2, 22);
 				let gridWidth = Math.floor(Math.sqrt(containerWidth / containerHeight * gridResolution));
 				let gridHeight = Math.floor(gridResolution / gridWidth);
+				let maxWeight = Math.max(...words.map((word) => word.weight));
 				boundWordWorker.postMessage({gridWidth, gridHeight});
 				for (let word of words) {
 					context.throwIfCanceled();
 					try {
 						let {text, weight, color, rotation, fontFamily, fontStyle, fontVariant, fontWeight} = word;
-						let fontSize = weight * 4;
+						let fontSize = weightToFontSize(weight, maxWeight);
 						let {textWidth, textHeight, rectWidth, rectHeight, rectData} = await getTextRect(text, fontFamily, fontSize, fontStyle, fontVariant, fontWeight, rotation);
 						boundWordWorker.postMessage({rectWidth, rectHeight, rectData});
 						let {rectLeft, rectTop} = await Worker_getMessage(boundWordWorker);
