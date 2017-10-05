@@ -1,4 +1,4 @@
-import BoundWordWorker from 'worker!./workers/boundWord.js';
+import BoundWordWorker from 'worker!./../dist/workers/boundWord.js';
 import Vue from 'vue';
 
 let InterruptError = class extends Error {
@@ -141,6 +141,7 @@ let interpolateWeight = function (weight, maxWeight, minWeight = 1, outputMin, o
 
 
 const VueWordCloud = {
+	name:'vue-word-cloud',
 	render(createElement) {
 		return this.renderer(createElement);
 	},
